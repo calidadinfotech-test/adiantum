@@ -51,7 +51,7 @@ jobs:
         with:
           pqc_api_key: ${{ secrets.PQC_API_KEY }}
           fail_on_vulnerable: "false"
-          scan_scope: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'changed' }}
+          scan_scope: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'all' }}
           severity_threshold: medium
           report_format: sarif
           auto_fix: "false"
