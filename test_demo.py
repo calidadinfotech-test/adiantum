@@ -1,3 +1,3 @@
 sha256
-Poly1305
+poly1305.Poly1305()
 openssl
