@@ -1,19 +1,11 @@
-import * as crypto from "crypto";
+import crypto from "crypto";
 
-interface AESVariant {
-    cipher: string;
-    lengths: {
-        block: number;
-        key: number;
-    };
-}
+export class AES {
+    private keyLength: 16 | 24 | 32 = 32;
 
-class AES {
-    private keyLength: number = 16;
-
-    set_keylen(k: number): void {
-        if (![16, 24, 32].includes(k)) {
-            throw new Error("Invalid AES key length");
+    set_keylen(k: 16 | 24 | 32): void {
+        if (k !== 16 && k !== 24 && k !== 32) {
+            throw new Error("AES key length must be 16, 24, or 32 bytes");
         }
 
         this.keyLength = k;
@@ -23,69 +15,61 @@ class AES {
         return `AES${this.keyLength * 8}`;
     }
 
-    variants(): AESVariant[] {
-        return [16, 24, 32].map((kl) => ({
-            cipher: "AES",
-            lengths: {
-                block: 16,
-                key: kl
-            }
-        }));
-    }
-
-    private algorithm(): string {
-        return `aes-${this.keyLength * 8}-ecb`;
-    }
-
-    encrypt(pt: Buffer, key: Buffer): Buffer {
+    encrypt(plaintext: Buffer, key: Buffer): Buffer {
         if (key.length !== this.keyLength) {
             throw new Error("Invalid AES key length");
         }
 
-        if (pt.length % 16 !== 0) {
-            throw new Error(
-                "Plaintext length must be a multiple of 16"
-            );
+        if (plaintext.length % 16 !== 0) {
+            throw new Error("Plaintext must be a multiple of 16 bytes");
         }
 
-        const cipher = crypto.createCipheriv(
-            this.algorithm(),
-            key,
-            null
-        );
+        let cipher: crypto.Cipher;
+
+        if (this.keyLength === 16) {
+            cipher = crypto.createCipheriv("aes-128-ecb", key, null);
+        } else if (this.keyLength === 24) {
+            cipher = crypto.createCipheriv("aes-192-ecb", key, null);
+        } else {
+            cipher = crypto.createCipheriv("aes-256-ecb", key, null);
+        }
 
         cipher.setAutoPadding(false);
 
         return Buffer.concat([
-            cipher.update(pt),
+            cipher.update(plaintext),
             cipher.final()
         ]);
     }
 
-    decrypt(ct: Buffer, key: Buffer): Buffer {
+    decrypt(ciphertext: Buffer, key: Buffer): Buffer {
         if (key.length !== this.keyLength) {
             throw new Error("Invalid AES key length");
         }
 
-        if (ct.length % 16 !== 0) {
-            throw new Error(
-                "Ciphertext length must be a multiple of 16"
-            );
+        if (ciphertext.length % 16 !== 0) {
+            throw new Error("Ciphertext must be a multiple of 16 bytes");
         }
 
-        const decipher = crypto.createDecipheriv(
-            this.algorithm(),
-            key,
-            null
-        );
+        let decipher: crypto.Decipher;
+
+        if (this.keyLength === 16) {
+            decipher = crypto.createDecipheriv("aes-128-ecb", key, null);
+        } else if (this.keyLength === 24) {
+            decipher = crypto.createDecipheriv("aes-192-ecb", key, null);
+        } else {
+            decipher = crypto.createDecipheriv("aes-256-ecb", key, null);
+        }
 
         decipher.setAutoPadding(false);
 
         return Buffer.concat([
-            decipher.update(ct),
+            decipher.update(ciphertext),
             decipher.final()
         ]);
     }
 }
 
-export default AES;
+export default function AESDemo(): JSX.Element {
+    return <div>AES encryption module</div>;
+}
